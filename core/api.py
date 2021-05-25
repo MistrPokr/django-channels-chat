@@ -84,12 +84,19 @@ class RoomModelViewSet(ModelViewSet):
         for _ in self.queryset:
             user_list = []
             for u in _.members.all():
-                user_list.append(u.username)
-            room_list.append({
-                "id": _.id,
-                "name": _.name,
-                "members": user_list,
-            })
+                user_list.append(
+                    {
+                        "id": u.id,
+                        "username": u.username,
+                    }
+                )
+            room_list.append(
+                {
+                    "id": _.id,
+                    "name": _.name,
+                    "members": user_list,
+                }
+            )
         return JsonResponse(room_list, safe=False)
         # return super(RoomModelViewSet, self).list(request, *args, **kwargs)
 
@@ -97,12 +104,12 @@ class RoomModelViewSet(ModelViewSet):
         group_name = request.data["room_name"]
         user_list = User.objects.all()
 
-        if group_name == None:
+        if group_name == "":
             new_group = Group.objects.create(name=get_random_string())
             room = RoomModel(base_group=new_group, name=get_random_string())
             room.save()  # must be saved first!
         else:
-            new_group = Group.objects.create(name=group_name)
+            new_group = Group.objects.create(name=get_random_string())
             room = RoomModel(base_group=new_group, name=group_name)
             room.save()  # must be saved first!
 
@@ -114,4 +121,6 @@ class RoomModelViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         # self.queryset = RoomModel.objects.get(id=kwargs["pk"])
-        return super(RoomModelViewSet, self).update(request, partial=True, *args, **kwargs)
+        return super(RoomModelViewSet, self).update(
+            request, partial=True, *args, **kwargs
+        )
