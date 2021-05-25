@@ -63,7 +63,7 @@
                                 <v-divider></v-divider>
                                 <div class="mx-2">
                                     <v-card-actions>
-                                                <v-text-field v-model="messageInput">
+                                                <v-text-field v-model="newRoomName">
                                                     <template v-slot:append>
                                                         {# Solution from https://jsfiddle.net/alizadeh118/whsfpkub/1/#}
                                                         <v-btn
@@ -71,7 +71,7 @@
                                                                 tile
                                                                 color="primary"
                                                                 class="ma-0"
-                                                                @click="createRoom()">
+                                                                @click="createRoom(newRoomName)">
                                                             Create
                                                         </v-btn>
                                                     </template>
@@ -224,10 +224,10 @@
                         })
                     this.getConversation(this.currentRoom.id)
                 },
-                createRoom() {
+                createRoom(name) {
                     let that = this;
                     let newRoomForm = {
-                        'room_name': 'test',
+                        'room_name': name,
                     };
                     axios
                         .post('/api/v1/room/', newRoomForm)
