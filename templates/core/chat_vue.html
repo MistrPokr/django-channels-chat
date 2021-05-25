@@ -94,6 +94,7 @@
                                          :key="index"
                                     >
                                         <v-chip
+                                                v-if="user.username != currentUser"
                                                 close
                                                 @click:close="removeUserFromRoom(currentRoom.id, user.id)"
                                         >[[ user.username ]]
