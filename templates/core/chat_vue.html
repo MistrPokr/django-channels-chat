@@ -49,10 +49,12 @@
                                                     </v-col>
                                                     <v-spacer></v-spacer>
                                                     <v-col cols="2">
-                                                        <v-icon @click="removeRoom(room.id)"
-                                                                color="red"
-                                                        >mdi-delete
-                                                        </v-icon>
+                                                        <v-chip color="red lighten-4">
+                                                            <v-icon @click="removeRoom(room.id)"
+                                                                    color="red"
+                                                            >mdi-delete
+                                                            </v-icon>
+                                                        </v-chip>
                                                     </v-col>
                                                 </v-row>
                                             </v-list-item-content>
@@ -80,9 +82,9 @@
                                 </div>
                             </v-card>
                         </v-col>
-                        <v-col
-                                class="float-none  center-align"
-                                cols="10" sm="4" md="4" lg="4">
+                        <v-col style="max-height: 70vh"
+                               class="float-none  center-align"
+                               cols="10" sm="4" md="4" lg="4">
                             <v-card>
                                 <v-card-title>
                                     <h3>Chat</h3>
@@ -101,25 +103,29 @@
                                         </v-chip>
                                     </div>
                                 </v-row>
-                                <v-slide-x-transition
-                                        class="py-0"
-                                        group
-                                >
-                                    <v-list v-for="(message, index) in messageList" :key="index">
-                                        <v-list-item two-line>
-                                            <v-list-item-content
-                                                    v-bind:class="{'text-right': message.user === currentUser}">
-                                                <v-list-item-title>[[ message.body ]]</v-list-item-title>
-                                                <v-list-item-subtitle>[[ message.user ]]</v-list-item-subtitle>
-                                            </v-list-item-content>
-                                        </v-list-item>
-                                    </v-list>
-                                </v-slide-x-transition>
+                                <v-divider></v-divider>
+                                <div class="overflow-y-auto" style="height: 40vh">
+                                    <v-slide-x-transition
+                                            class="py-0 overflow-auto"
+                                            group
+                                    >
+                                        <v-list v-for="(message, index) in messageList" :key="index">
+                                            <v-list-item two-line>
+                                                <v-list-item-content
+                                                        v-bind:class="{'text-right': message.user === currentUser}">
+                                                    <v-list-item-title>[[ message.body ]]</v-list-item-title>
+                                                    <v-list-item-subtitle>[[ message.user ]]</v-list-item-subtitle>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                        </v-list>
+                                    </v-slide-x-transition>
+                                </div>
                                 <div class="mx-4">
                                     <v-row>
                                         <v-col>
                                             <v-card-actions>
-                                                <v-text-field v-model="messageInput">
+                                                <v-text-field v-model="messageInput"
+                                                              @keydown.enter="sendMessage(currentRoom, messageInput)">
                                                     <template v-slot:append>
                                                         {# Solution from https://jsfiddle.net/alizadeh118/whsfpkub/1/#}
                                                         <v-btn
@@ -127,7 +133,8 @@
                                                                 tile
                                                                 color="primary"
                                                                 class="ma-0"
-                                                                @click="sendMessage(currentRoom, messageInput)">
+                                                                @click="sendMessage(currentRoom, messageInput)"
+                                                        >
                                                             Send
                                                         </v-btn>
                                                     </template>
@@ -190,7 +197,7 @@
                             function (response) {
                                 console.log(response.data);
                                 for (let i = 0; i < response.data.length; i++) {
-                                    if(that.currentRoom.id === response.data[i].id){
+                                    if (that.currentRoom.id === response.data[i].id) {
                                         that.roomList[i] = response.data[i];
                                         that.currentRoom = that.roomList[i];
                                     }
@@ -310,7 +317,7 @@
                         '/ws?session_key=${sessionKey}');
                     this.socket.onmessage = function (e) {
                         // getMessageById(e.data);
-                        that.getConversation(that.currentRoom.id);
+                        setTimeout(that.getConversation(that.currentRoom.id), 500);
                         console.log(e.data)
                     };
                     this.socket.onclose = function (e) {
@@ -328,12 +335,21 @@
                 this.updateRoomList();
             },
             computed: {
-               userList(){
-                   return this.currentRoom.members;
-               }
+                userList() {
+                    return this.currentRoom.members;
+                }
             },
         })
         ;
     </script>
+    <style>
+        #app {
+            background: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2700&q=80') no-repeat center center fixed !important;
+            background-size: cover;
+        }
 
+        .navbar {
+            margin-bottom: 0px;
+        }
+    </style>
 {% endblock main %}
