@@ -87,10 +87,19 @@
                                 <v-card-title>
                                     <h3>Chat</h3>
                                 </v-card-title>
-                                <v-btn @click="removeUserFromRoom(currentRoom.id,2)">
-                                    DELETE USER
-                                </v-btn>
                                 <v-divider></v-divider>
+                                <v-row class="mx-4 my-2">
+                                    <div class="mx-1"
+                                         v-for="(user, index) in currentRoom.members"
+                                         :key="index"
+                                    >
+                                        <v-chip
+                                                close
+                                                @click:close="removeUserFromRoom(currentRoom.id, user.id)"
+                                        >[[ user ]]
+                                        </v-chip>
+                                    </div>
+                                </v-row>
                                 <v-slide-x-transition
                                         class="py-0"
                                         group
@@ -151,7 +160,9 @@
                     sessionKey: "{{ request.session.session_key }}",
                     currentUser: "{{ request.user.username }}",
 
-                    currentRoom: null,
+                    currentRoom: {
+                        members: {}
+                    },
                     newRoomName: null,
                     roomList: [],
                     messageInput: '',
