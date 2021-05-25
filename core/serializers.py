@@ -34,6 +34,15 @@ class UserModelSerializer(ModelSerializer):
 
 
 class RoomModelSerializer(ModelSerializer):
+    # member_delete = CharField()
+
+    def update(self, instance, validated_data):
+        member_delete_id = self.initial_data["member_delete"]
+        member_remove = instance.members.get(id=member_delete_id)
+        instance.members.remove(member_remove)
+        instance.save()
+        return instance
+
     class Meta:
         model = RoomModel
         fields = "__all__"

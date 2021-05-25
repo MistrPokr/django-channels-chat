@@ -73,7 +73,7 @@ class UserModelViewSet(ModelViewSet):
 class RoomModelViewSet(ModelViewSet):
     queryset = RoomModel.objects.all()
     serializer_class = RoomModelSerializer
-    allowed_methods = ("GET", "POST", "DELETE")
+    allowed_methods = ("GET", "POST", "DELETE", "PUT")
     authentication_classes = (CsrfExemptSessionAuthentication,)
     pagination_class = None
 
@@ -106,10 +106,12 @@ class RoomModelViewSet(ModelViewSet):
             room = RoomModel(base_group=new_group, name=group_name)
             room.save()  # must be saved first!
 
-
-
         for u in user_list:
             room.members.add(u)
         room.save()
 
         return Response(status=200)
+
+    def update(self, request, *args, **kwargs):
+        # self.queryset = RoomModel.objects.get(id=kwargs["pk"])
+        return super(RoomModelViewSet, self).update(request, partial=True, *args, **kwargs)

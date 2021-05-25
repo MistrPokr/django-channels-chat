@@ -63,20 +63,20 @@
                                 <v-divider></v-divider>
                                 <div class="mx-2">
                                     <v-card-actions>
-                                                <v-text-field v-model="newRoomName">
-                                                    <template v-slot:append>
-                                                        {# Solution from https://jsfiddle.net/alizadeh118/whsfpkub/1/#}
-                                                        <v-btn
-                                                                depressed
-                                                                tile
-                                                                color="primary"
-                                                                class="ma-0"
-                                                                @click="createRoom(newRoomName)">
-                                                            Create
-                                                        </v-btn>
-                                                    </template>
-                                                </v-text-field>
-                                            </v-card-actions>
+                                        <v-text-field v-model="newRoomName">
+                                            <template v-slot:append>
+                                                {# Solution from https://jsfiddle.net/alizadeh118/whsfpkub/1/#}
+                                                <v-btn
+                                                        depressed
+                                                        tile
+                                                        color="primary"
+                                                        class="ma-0"
+                                                        @click="createRoom(newRoomName)">
+                                                    Create
+                                                </v-btn>
+                                            </template>
+                                        </v-text-field>
+                                    </v-card-actions>
                                 </div>
                             </v-card>
                         </v-col>
@@ -87,6 +87,9 @@
                                 <v-card-title>
                                     <h3>Chat</h3>
                                 </v-card-title>
+                                <v-btn @click="removeUserFromRoom(currentRoom.id,2)">
+                                    DELETE USER
+                                </v-btn>
                                 <v-divider></v-divider>
                                 <v-slide-x-transition
                                         class="py-0"
@@ -167,6 +170,17 @@
                             }
                         )
                 },
+                updateRoom() {
+                    let that = this;
+                    axios
+                        .get('api/v1/user')
+                        .then(
+                            function (response) {
+                                console.log(response.data);
+                                that.userList = response.data;
+                            }
+                        )
+                },
                 setCurrentRoom(room) {
                     let wsJsonData = {
                         "type": "connection_message",
@@ -223,6 +237,21 @@
                             that.messageInput = '';
                         })
                     this.getConversation(this.currentRoom.id)
+                },
+                removeUserFromRoom(roomId, userId) {
+                    let that = this;
+                    axios({
+                        method: 'PUT',
+                        url: `/api/v1/room/${roomId}/`,
+                        data: {
+                            "member_delete": userId,
+                        }
+                    })
+                        .then(function (response) {
+                                console.log(response);
+                                that.updateRoom();
+                            }
+                        )
                 },
                 createRoom(name) {
                     let that = this;

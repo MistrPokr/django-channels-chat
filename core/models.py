@@ -104,4 +104,4 @@ class MessageModel(Model):
         app_label = "core"
         verbose_name = "message"
         verbose_name_plural = "messages"
-        ordering = ("-timestamp",)
+        ordering = ("timestamp",)
