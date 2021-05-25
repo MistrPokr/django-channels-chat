@@ -90,13 +90,13 @@
                                 <v-divider></v-divider>
                                 <v-row class="mx-4 my-2">
                                     <div class="mx-1"
-                                         v-for="(user, index) in currentRoom.members"
+                                         v-for="(user, index) in userList"
                                          :key="index"
                                     >
                                         <v-chip
                                                 close
                                                 @click:close="removeUserFromRoom(currentRoom.id, user.id)"
-                                        >[[ user ]]
+                                        >[[ user.username ]]
                                         </v-chip>
                                     </div>
                                 </v-row>
@@ -170,24 +170,40 @@
                 }
             },
             methods: {
-                updateUserList() {
+                updateRoomList() {
+                    let that = this;
+                    axios
+                        .get('api/v1/room')
+                        .then(
+                            function (response) {
+                                {#console.log(response.data);#}
+                                that.roomList = response.data;
+                            }
+                        )
+                },
+                updateRoomInfo(room) {
                     let that = this;
                     axios
                         .get('api/v1/room')
                         .then(
                             function (response) {
                                 console.log(response.data);
-                                that.roomList = response.data;
+                                for (let i = 0; i < response.data.length; i++) {
+                                    if(that.currentRoom.id === response.data[i].id){
+                                        that.roomList[i] = response.data[i];
+                                        that.currentRoom = that.roomList[i];
+                                    }
+                                }
                             }
                         )
                 },
-                updateRoom() {
+                updateUserList() {
                     let that = this;
                     axios
                         .get('api/v1/user')
                         .then(
                             function (response) {
-                                console.log(response.data);
+                                {#console.log(response.data);#}
                                 that.userList = response.data;
                             }
                         )
@@ -259,8 +275,7 @@
                         }
                     })
                         .then(function (response) {
-                                console.log(response);
-                                that.updateRoom();
+                                that.updateRoomInfo(that.currentRoom);
                             }
                         )
                 },
@@ -272,8 +287,8 @@
                     axios
                         .post('/api/v1/room/', newRoomForm)
                         .then(function (response) {
-                            console.log(response);
-                            that.updateUserList();
+                            {#console.log(response);#}
+                            that.updateRoomList();
                         })
                 },
                 removeRoom(roomId) {
@@ -309,7 +324,12 @@
             },
             mounted() {
                 this.initWebSocket();
-                this.updateUserList();
+                this.updateRoomList();
+            },
+            computed: {
+               userList(){
+                   return this.currentRoom.members;
+               }
             },
         })
         ;
