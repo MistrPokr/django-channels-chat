@@ -47,8 +47,6 @@ class ChatConsumer(WebsocketConsumer):
             "message": msg.body,
         }
 
-        time.sleep(0.1)
-
         async_to_sync(self.channel_layer.group_send)(
             send_to_group,
             send_msg,
