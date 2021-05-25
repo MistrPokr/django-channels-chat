@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.http.response import JsonResponse
 from django.contrib.auth.models import User, Group
 from django.utils.crypto import get_random_string
 from rest_framework.pagination import PageNumberPagination
@@ -78,7 +79,19 @@ class RoomModelViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         self.queryset = RoomModel.objects.filter(members=request.user)
-        return super(RoomModelViewSet, self).list(request, *args, **kwargs)
+        room_list = []
+
+        for _ in self.queryset:
+            user_list = []
+            for u in _.members.all():
+                user_list.append(u.username)
+            room_list.append({
+                "id": _.id,
+                "name": _.name,
+                "members": user_list,
+            })
+        return JsonResponse(room_list, safe=False)
+        # return super(RoomModelViewSet, self).list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         group_name = request.data["room_name"]
