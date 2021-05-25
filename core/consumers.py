@@ -1,3 +1,5 @@
+import time
+
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from core.models import RoomModel
@@ -44,6 +46,9 @@ class ChatConsumer(WebsocketConsumer):
             "type": "chat_message",
             "message": msg.body,
         }
+
+        time.sleep(0.1)
+
         async_to_sync(self.channel_layer.group_send)(
             send_to_group,
             send_msg,
