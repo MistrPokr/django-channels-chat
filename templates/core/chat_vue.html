@@ -24,7 +24,7 @@
                         <v-spacer></v-spacer>
                         <v-col
                                 class="float-none center-align"
-                                cols="10" sm="4" md="4" lg="4">
+                                cols="10" sm="5" md="5" lg="5">
                             <v-card class="rounded-lg">
                                 <v-card-title>
                                     <h3>Room List</h3>
@@ -84,7 +84,7 @@
                         </v-col>
                         <v-col style="max-height: 70vh"
                                class="float-none  center-align"
-                               cols="10" sm="4" md="4" lg="4">
+                               cols="10" sm="5" md="5" lg="5">
                             <v-card class="rounded-lg">
                                 <v-card-title>
                                     <h3>Chat</h3>
@@ -109,7 +109,9 @@
                                             class="py-0 overflow-auto"
                                             group
                                     >
-                                        <v-list v-for="(message, index) in messageList" :key="index">
+                                        <v-list v-for="(message, index) in messageList" :key="index"
+                                                :id="index===messageList.length - 1 ? 'lastMessageElement' : ''"
+                                        >
                                             <v-list-item two-line>
                                                 <v-list-item-content
                                                         v-bind:class="{'text-right': message.user === currentUser}">
@@ -235,6 +237,10 @@
                         .then(function (response) {
                             console.log(response);
                             that.messageList = response.data.results;
+                            console.log(document.querySelector('#lastMessageElement'))
+                            setTimeout(() => {
+                                document.getElementById('lastMessageElement').scrollIntoView({behavior: 'smooth'});
+                            }, 50)
                         })
                 },
                 getMessageById(message) {
