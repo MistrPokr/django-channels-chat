@@ -25,7 +25,7 @@
                         <v-col
                                 class="float-none center-align"
                                 cols="10" sm="4" md="4" lg="4">
-                            <v-card>
+                            <v-card class="rounded-lg">
                                 <v-card-title>
                                     <h3>Room List</h3>
                                 </v-card-title>
@@ -49,10 +49,12 @@
                                                     </v-col>
                                                     <v-spacer></v-spacer>
                                                     <v-col cols="2">
-                                                        <v-icon @click="removeRoom(room.id)"
-                                                                color="red"
-                                                        >mdi-delete
-                                                        </v-icon>
+                                                        <v-chip color="red lighten-4">
+                                                            <v-icon @click="removeRoom(room.id)"
+                                                                    color="red"
+                                                            >mdi-delete
+                                                            </v-icon>
+                                                        </v-chip>
                                                     </v-col>
                                                 </v-row>
                                             </v-list-item-content>
@@ -63,50 +65,67 @@
                                 <v-divider></v-divider>
                                 <div class="mx-2">
                                     <v-card-actions>
-                                                <v-text-field v-model="messageInput">
-                                                    <template v-slot:append>
-                                                        {# Solution from https://jsfiddle.net/alizadeh118/whsfpkub/1/#}
-                                                        <v-btn
-                                                                depressed
-                                                                tile
-                                                                color="primary"
-                                                                class="ma-0"
-                                                                @click="createRoom()">
-                                                            Create
-                                                        </v-btn>
-                                                    </template>
-                                                </v-text-field>
-                                            </v-card-actions>
+                                        <v-text-field v-model="newRoomName">
+                                            <template v-slot:append>
+                                                {# Solution from https://jsfiddle.net/alizadeh118/whsfpkub/1/#}
+                                                <v-btn
+                                                        depressed
+                                                        tile
+                                                        color="primary"
+                                                        class="ma-0"
+                                                        @click="createRoom(newRoomName)">
+                                                    Create
+                                                </v-btn>
+                                            </template>
+                                        </v-text-field>
+                                    </v-card-actions>
                                 </div>
                             </v-card>
                         </v-col>
-                        <v-col
-                                class="float-none  center-align"
-                                cols="10" sm="4" md="4" lg="4">
-                            <v-card>
+                        <v-col style="max-height: 70vh"
+                               class="float-none  center-align"
+                               cols="10" sm="4" md="4" lg="4">
+                            <v-card class="rounded-lg">
                                 <v-card-title>
                                     <h3>Chat</h3>
                                 </v-card-title>
                                 <v-divider></v-divider>
-                                <v-slide-x-transition
-                                        class="py-0"
-                                        group
-                                >
-                                    <v-list v-for="(message, index) in messageList" :key="index">
-                                        <v-list-item two-line>
-                                            <v-list-item-content
-                                                    v-bind:class="{'text-right': message.user === currentUser}">
-                                                <v-list-item-title>[[ message.body ]]</v-list-item-title>
-                                                <v-list-item-subtitle>[[ message.user ]]</v-list-item-subtitle>
-                                            </v-list-item-content>
-                                        </v-list-item>
-                                    </v-list>
-                                </v-slide-x-transition>
+                                <v-row class="mx-4 my-2">
+                                    <div class="mx-1"
+                                         v-for="(user, index) in userList"
+                                         :key="index"
+                                    >
+                                        <v-chip
+                                                v-if="user.username != currentUser"
+                                                close
+                                                @click:close="removeUserFromRoom(currentRoom.id, user.id)"
+                                        >[[ user.username ]]
+                                        </v-chip>
+                                    </div>
+                                </v-row>
+                                <v-divider></v-divider>
+                                <div class="overflow-y-auto" style="height: 40vh">
+                                    <v-slide-x-transition
+                                            class="py-0 overflow-auto"
+                                            group
+                                    >
+                                        <v-list v-for="(message, index) in messageList" :key="index">
+                                            <v-list-item two-line>
+                                                <v-list-item-content
+                                                        v-bind:class="{'text-right': message.user === currentUser}">
+                                                    <v-list-item-title>[[ message.body ]]</v-list-item-title>
+                                                    <v-list-item-subtitle>[[ message.user ]]</v-list-item-subtitle>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                        </v-list>
+                                    </v-slide-x-transition>
+                                </div>
                                 <div class="mx-4">
                                     <v-row>
                                         <v-col>
                                             <v-card-actions>
-                                                <v-text-field v-model="messageInput">
+                                                <v-text-field v-model="messageInput"
+                                                              @keydown.enter="sendMessage(currentRoom, messageInput)">
                                                     <template v-slot:append>
                                                         {# Solution from https://jsfiddle.net/alizadeh118/whsfpkub/1/#}
                                                         <v-btn
@@ -114,7 +133,8 @@
                                                                 tile
                                                                 color="primary"
                                                                 class="ma-0"
-                                                                @click="sendMessage(currentRoom, messageInput)">
+                                                                @click="sendMessage(currentRoom, messageInput)"
+                                                        >
                                                             Send
                                                         </v-btn>
                                                     </template>
@@ -148,22 +168,51 @@
                     sessionKey: "{{ request.session.session_key }}",
                     currentUser: "{{ request.user.username }}",
 
-                    currentRoom: null,
-                    newRoomName: null,
+                    currentRoom: {
+                        members: {}
+                    },
+                    newRoomName: '',
                     roomList: [],
                     messageInput: '',
                     messageList: [],
                 }
             },
             methods: {
-                updateUserList() {
+                updateRoomList() {
+                    let that = this;
+                    axios
+                        .get('api/v1/room')
+                        .then(
+                            function (response) {
+                                {#console.log(response.data);#}
+                                that.roomList = response.data;
+                            }
+                        )
+                },
+                updateRoomInfo(room) {
                     let that = this;
                     axios
                         .get('api/v1/room')
                         .then(
                             function (response) {
                                 console.log(response.data);
-                                that.roomList = response.data;
+                                for (let i = 0; i < response.data.length; i++) {
+                                    if (that.currentRoom.id === response.data[i].id) {
+                                        that.roomList[i] = response.data[i];
+                                        that.currentRoom = that.roomList[i];
+                                    }
+                                }
+                            }
+                        )
+                },
+                updateUserList() {
+                    let that = this;
+                    axios
+                        .get('api/v1/user')
+                        .then(
+                            function (response) {
+                                {#console.log(response.data);#}
+                                that.userList = response.data;
                             }
                         )
                 },
@@ -224,16 +273,30 @@
                         })
                     this.getConversation(this.currentRoom.id)
                 },
-                createRoom() {
+                removeUserFromRoom(roomId, userId) {
+                    let that = this;
+                    axios({
+                        method: 'PUT',
+                        url: `/api/v1/room/${roomId}/`,
+                        data: {
+                            "member_delete": userId,
+                        }
+                    })
+                        .then(function (response) {
+                                that.updateRoomInfo(that.currentRoom);
+                            }
+                        )
+                },
+                createRoom(name) {
                     let that = this;
                     let newRoomForm = {
-                        'room_name': 'test',
+                        'room_name': name,
                     };
                     axios
                         .post('/api/v1/room/', newRoomForm)
                         .then(function (response) {
-                            console.log(response);
-                            that.updateUserList();
+                            {#console.log(response);#}
+                            that.updateRoomList();
                         })
                 },
                 removeRoom(roomId) {
@@ -243,7 +306,7 @@
                         url: `/api/v1/room/${roomId}/`,
                     })
                         .then(function (response) {
-                                that.updateUserList();
+                                that.updateRoomList();
                             }
                         )
                 },
@@ -254,7 +317,7 @@
                         '/ws?session_key=${sessionKey}');
                     this.socket.onmessage = function (e) {
                         // getMessageById(e.data);
-                        that.getConversation(that.currentRoom.id);
+                        setTimeout(that.getConversation(that.currentRoom.id), 500);
                         console.log(e.data)
                     };
                     this.socket.onclose = function (e) {
@@ -269,10 +332,24 @@
             },
             mounted() {
                 this.initWebSocket();
-                this.updateUserList();
+                this.updateRoomList();
+            },
+            computed: {
+                userList() {
+                    return this.currentRoom.members;
+                }
             },
         })
         ;
     </script>
+    <style>
+        #app {
+            background: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2700&q=80') no-repeat center center fixed !important;
+            background-size: cover;
+        }
 
+        .navbar {
+            margin-bottom: 0px;
+        }
+    </style>
 {% endblock main %}
