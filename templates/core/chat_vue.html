@@ -254,6 +254,12 @@
                         })
                 },
                 sendMessage(room, body) {
+                    let sensitive_words = ["fuck", "shit", "共产党",];
+                    for(let i = 0; i < sensitive_words.length; i++){
+                        if(body.search(sensitive_words[i])==0){
+                        body = "****";
+                    }
+                    }
                     let that = this;
 
                     let newWSData = {
